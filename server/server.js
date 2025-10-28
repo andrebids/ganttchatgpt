@@ -70,6 +70,7 @@ function flattenAndNormalizeTasks(tasks) {
   return flat;
 }
 
+let __tempIdsMigrated = false;
 function readData() {
   ensureDataFile();
   const raw = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
@@ -84,8 +85,12 @@ function readData() {
   }
 
   // Passo 2: migrar quaisquer IDs temporários para IDs numéricos e corrigir referências
-  const changedByIdFix = normalizeTempIds(data);
-  if (changedByIdFix) updated = true;
+  // Executa migração de temp ids apenas uma vez por arranque
+  if (!__tempIdsMigrated) {
+    const changedByIdFix = normalizeTempIds(data);
+    if (changedByIdFix) updated = true;
+    __tempIdsMigrated = true;
+  }
 
   if (updated) {
     fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
