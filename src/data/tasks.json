@@ -1,19 +1,45 @@
 {
-    "tasks": [
-      {
-        "id": 1,
-        "text": "Exemplo inicial",
-        "start": "2025-10-01",
-        "end": "2025-10-05",
-        "duration": 5,
-        "progress": 0.4,
-        "type": "task"
-      }
-    ],
-    "links": [],
-    "scales": [
-      { "unit": "month", "step": 1, "format": "MMMM yyyy" },
-      { "unit": "day", "step": 1, "format": "d" }
-    ]
-  }
-  
+  "tasks": [
+    {
+      "id": 1,
+      "text": "Exemplo inicial",
+      "start": "2025-10-01",
+      "end": "2025-10-05",
+      "duration": 5,
+      "progress": 0.4,
+      "type": "task"
+    },
+    {
+      "id": 2,
+      "text": "Novo Projeto 2",
+      "start": "2025-10-28T09:36:07.655Z",
+      "end": "2025-11-04T09:36:07.655Z",
+      "type": "summary",
+      "progress": 0,
+      "open": true,
+      "parent": 0
+    },
+    {
+      "id": 3,
+      "text": "Tarefa inicial 2",
+      "start": "2025-10-28T09:36:07.655Z",
+      "end": "2025-10-30T09:36:07.655Z",
+      "type": "task",
+      "progress": 0,
+      "parent": 2
+    }
+  ],
+  "links": [],
+  "scales": [
+    {
+      "unit": "month",
+      "step": 1,
+      "format": "MMMM yyyy"
+    },
+    {
+      "unit": "day",
+      "step": 1,
+      "format": "d"
+    }
+  ]
+}
