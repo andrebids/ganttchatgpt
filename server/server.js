@@ -111,6 +111,17 @@ app.post("/api/data", (req, res) => {
 app.get("/api", (req, res) => {
   try {
     const json = readData();
+    const requestedId = req.query.id ?? req.query.parent ?? req.query.parentId;
+    if (typeof requestedId !== "undefined") {
+      const idStr = String(requestedId);
+      const tasks = (json.tasks || []).filter((t) => String(t.parent ?? "") === idStr);
+      // Opcional: filtra links que tocam as tarefas encontradas
+      const ids = new Set(tasks.map((t) => String(t.id)));
+      const links = (json.links || []).filter(
+        (l) => ids.has(String(l.source)) || ids.has(String(l.target))
+      );
+      return res.json({ tasks, links });
+    }
     res.json(json);
   } catch (err) {
     console.error("❌ Erro ao ler JSON:", err.message);
@@ -165,8 +176,10 @@ app.post("/api/tasks", (req, res) => {
     }
 
     const incoming = (req.body && (req.body.task || req.body)) || {};
+    // Substitui IDs temporários por um novo ID numérico
+    const hasTempId = typeof incoming.id === "string" && incoming.id.startsWith("temp://");
     const nextId =
-      typeof incoming.id !== "undefined"
+      typeof incoming.id !== "undefined" && !hasTempId
         ? incoming.id
         : (raw.tasks.reduce((m, t) => (t.id > m ? t.id : m), 0) || 0) + 1;
     const newTask = flattenAndNormalizeTasks([{ id: nextId, ...incoming }])[0];
