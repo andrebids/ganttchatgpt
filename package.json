@@ -1,0 +1,24 @@
+{
+  "type": "module",
+  "name": "gantt-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@svar-ui/react-gantt": "^2.3.2",
+    "axios": "^1.13.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vite": "^7.1.12"
+  }
+}

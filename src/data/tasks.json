@@ -1,0 +1,19 @@
+{
+    "tasks": [
+      {
+        "id": 1,
+        "text": "Exemplo inicial",
+        "start": "2025-10-01",
+        "end": "2025-10-05",
+        "duration": 5,
+        "progress": 0.4,
+        "type": "task"
+      }
+    ],
+    "links": [],
+    "scales": [
+      { "unit": "month", "step": 1, "format": "MMMM yyyy" },
+      { "unit": "day", "step": 1, "format": "d" }
+    ]
+  }
+  
