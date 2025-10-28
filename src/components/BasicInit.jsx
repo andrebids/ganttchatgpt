@@ -8,121 +8,99 @@ export default function BasicInit({ skinSettings }) {
     []
   );
 
-  const [api, setApi] = useState();
-  const [tasks, setTasks] = useState();
-  const [links, setLinks] = useState();
+  const [api, setApi] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [links, setLinks] = useState([]);
 
-  // (sem override de columns) — usa colunas padrão do Gantt
-
-  // Carrega os dados iniciais do JSON
+  // Carrega os dados iniciais - exatamente como no exemplo oficial
   useEffect(() => {
     restProvider.getData().then(({ tasks: t, links: l }) => {
       setTasks(t);
       setLinks(l);
-      console.log("📦 Dados carregados do backend:", { t, l });
+      console.log("📦 Dados carregados do backend:", t.length, "tarefas");
     });
   }, [restProvider]);
 
-  // Log de verificação dos ícones (wxi-*) no DOM
-  useEffect(() => {
-    const logIcons = () => {
-      try {
-        const nodeList = document.querySelectorAll('.wxi, [class*="wxi-"]');
-        const icons = Array.from(nodeList);
-        const first = icons[0];
-        let details = null;
-        if (first) {
-          const cs = getComputedStyle(first);
-          details = {
-            classes: first.className,
-            maskImage: cs.maskImage,
-            webkitMaskImage: cs.webkitMaskImage,
-            backgroundImage: cs.backgroundImage,
-            width: cs.width,
-            height: cs.height,
-          };
-        }
-        console.log(`🧩 Verificação de ícones: ${icons.length} elementos wxi encontrados`, details);
-      } catch (err) {
-        console.warn('⚠️ Falha ao verificar ícones wxi:', err);
+  // Inicializa o Gantt - exatamente como no exemplo oficial
+  const init = useCallback((api) => {
+    setApi(api);
+    
+    // Liga o backend como "next" na cadeia de eventos
+    api.setNext(restProvider);
+
+    // DEBUG: logar chamadas REST do browser (apenas para localhost:3025)
+    try {
+      if (!window.__ganttFetchLogged) {
+        window.__ganttFetchLogged = true;
+        const _fetch = window.fetch;
+        window.fetch = async (input, init) => {
+          const url = typeof input === "string" ? input : input?.url;
+          const method = init?.method || "GET";
+          if (url && url.includes("http://localhost:3025")) {
+            // Tenta clonar body para log
+            let body = init?.body;
+            try { body = typeof body === "string" ? body : body && JSON.stringify(body); } catch (_) {}
+            console.log(`🌐 ${method} ${url}`, body || "");
+          }
+          const res = await _fetch(input, init);
+          try {
+            if (url && url.includes("http://localhost:3025")) {
+              const clone = res.clone();
+              const text = await clone.text();
+              console.log(`🌐 ← ${res.status} ${method} ${url}`, text);
+            }
+          } catch (_) {}
+          return res;
+        };
       }
-    };
-    // executa após render e após possíveis montagens tardias
-    const t1 = setTimeout(logIcons, 0);
-    const t2 = setTimeout(logIcons, 300);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [tasks, links]);
+    } catch (_) {}
 
-  // Inicializa o Gantt e liga o Event Bus
-  const init = useCallback(
-    (api) => {
-      console.log("🔌 Ligado ao Event Bus do Gantt");
-      setApi(api);
-      // Expor API globalmente para debug no DevTools
-      try { window._ganttApi = api; } catch (_) {}
-
-      // Liga o backend como "next" na cadeia de eventos
-      api.setNext(restProvider);
-
-      // Handler para request-data (importante para o funcionamento correto)
-      api.on("request-data", (ev) => {
-        restProvider.getData(ev.id).then(({ tasks, links }) => {
-          api.exec("provide-data", {
-            id: ev.id,
-            data: {
-              tasks,
-              links,
-            },
-          });
+    // Handler para request-data (carregamento dinâmico)
+    api.on("request-data", (ev) => {
+      restProvider.getData(ev.id).then(({ tasks, links }) => {
+        api.exec("provide-data", {
+          id: ev.id,
+          data: {
+            tasks,
+            links,
+          },
         });
       });
+    });
 
-      // Loga os eventos principais
-      api.on("update-task", (ev) => {
-        console.log("🔄 Task atualizada via drag/resize:", ev);
-      });
+    // Logs das ações principais (não alteram o fluxo)
+    api.on("add-task", (ev) => {
+      console.log("➕ add-task", ev);
+    });
+    api.on("update-task", (ev) => {
+      console.log("🔄 update-task", ev);
+    });
+    api.on("delete-task", (ev) => {
+      console.log("🗑️ delete-task", ev);
+    });
+    api.on("move-task", (ev) => {
+      console.log("🚚 move-task", ev);
+    });
+    api.on("copy-task", (ev) => {
+      console.log("📋 copy-task", ev);
+    });
 
-      api.on("add-task", (ev) => {
-        console.log("➕ Nova tarefa adicionada:", ev);
-      });
+    // Também interceptamos apenas para logar antes do envio ao RestDataProvider
+    api.intercept("add-task", (ev) => { console.log("➡️ sending add-task", ev); return ev; });
+    api.intercept("update-task", (ev) => { console.log("➡️ sending update-task", ev); return ev; });
+    api.intercept("delete-task", (ev) => { console.log("➡️ sending delete-task", ev); return ev; });
+    api.intercept("move-task", (ev) => { console.log("➡️ sending move-task", ev); return ev; });
+    api.intercept("copy-task", (ev) => { console.log("➡️ sending copy-task", ev); return ev; });
 
-      api.on("delete-task", (ev) => {
-        console.log("❌ Tarefa removida:", ev);
-      });
-
-      api.on("move-task", (ev) => {
-        console.log("🚚 Tarefa movida:", ev);
-      });
-
-      // Abrir o Editor com um clique na barra da tarefa
-      api.on("click-task", (ev) => {
-        if (!ev || ev.id == null) return;
-        console.log("🖱️ click-task", ev);
-        api.exec("show-editor", { id: ev.id });
-      });
-
-      // Alternativa: abrir com duplo clique
-      api.on("doubleclick-task", (ev) => {
-        if (!ev || ev.id == null) return;
-        console.log("🖱️ doubleclick-task", ev);
-        api.exec("show-editor", { id: ev.id });
-      });
-
-      // Observa quando o editor é solicitado (sem alterar o fluxo)
-      api.intercept("show-editor", (payload) => {
-        console.log("🪄 intercept show-editor", payload);
-        // não retornar nada para não alterar o comportamento padrão
-      });
-    },
-    [restProvider]
-  );
+    // Abrir o Editor com um clique na barra da tarefa
+    api.on("click-task", (ev) => {
+      if (!ev || ev.id == null) return;
+      api.exec("show-editor", { id: ev.id });
+    });
+  }, [restProvider]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-
       <div style={{ flexGrow: 1 }}>
         <ContextMenu api={api}>
           <Fullscreen hotkey="ctrl+shift+f">
@@ -137,20 +115,11 @@ export default function BasicInit({ skinSettings }) {
                 { unit: "month", step: 1, format: "MMMM yyyy" },
                 { unit: "week", step: 1, format: "II" },
               ]}
-            >
-            </Gantt>
+            />
           </Fullscreen>
         </ContextMenu>
-        {api && <DebugEditor api={api} />}
+        {api && <Editor api={api} />}
       </div>
     </div>
   );
-}
-
-function DebugEditor({ api }) {
-  useEffect(() => {
-    console.log("🧩 Editor montado");
-    return () => console.log("🧩 Editor desmontado");
-  }, []);
-  return <Editor api={api} />;
 }

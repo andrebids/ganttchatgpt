@@ -73,18 +73,70 @@ function flattenAndNormalizeTasks(tasks) {
 function readData() {
   ensureDataFile();
   const raw = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
+
+  // Passo 1: normalizar datas/estrutura
   const normalizedTasks = flattenAndNormalizeTasks(raw.tasks);
-  const changed = JSON.stringify(normalizedTasks) !== JSON.stringify(raw.tasks);
-  if (changed) {
-    const fixed = { ...raw, tasks: normalizedTasks };
-    fs.writeFileSync(DATA_PATH, JSON.stringify(fixed, null, 2));
-    return fixed;
+  let data = { ...raw };
+  let updated = false;
+  if (JSON.stringify(normalizedTasks) !== JSON.stringify(raw.tasks)) {
+    data.tasks = normalizedTasks;
+    updated = true;
   }
-  return raw;
+
+  // Passo 2: migrar quaisquer IDs temporários para IDs numéricos e corrigir referências
+  const changedByIdFix = normalizeTempIds(data);
+  if (changedByIdFix) updated = true;
+
+  if (updated) {
+    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+  }
+  return data;
 }
 
 function writeData(json) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(json, null, 2));
+}
+
+// Migração: converte ids temp://* para ids numéricos e ajusta parents/links
+function normalizeTempIds(data) {
+  const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+  const links = Array.isArray(data.links) ? data.links : [];
+
+  const tempTasks = tasks.filter(t => typeof t.id === "string" && t.id.startsWith("temp://"));
+  if (tempTasks.length === 0) return false;
+
+  const currentMaxId = tasks.reduce((m, t) => (typeof t.id === "number" && t.id > m ? t.id : m), 0);
+  let nextId = currentMaxId + 1;
+  const mapTempToReal = new Map();
+
+  // Atribuir novos ids
+  for (const t of tempTasks) {
+    mapTempToReal.set(String(t.id), nextId++);
+  }
+
+  // Atualizar tasks (id e parent)
+  for (const t of tasks) {
+    if (typeof t.id === "string" && mapTempToReal.has(String(t.id))) {
+      t.id = mapTempToReal.get(String(t.id));
+    }
+    if (typeof t.parent === "string" && mapTempToReal.has(String(t.parent))) {
+      t.parent = mapTempToReal.get(String(t.parent));
+    }
+  }
+
+  // Atualizar links (source/target)
+  for (const l of links) {
+    if (typeof l.source === "string" && mapTempToReal.has(String(l.source))) {
+      l.source = mapTempToReal.get(String(l.source));
+    }
+    if (typeof l.target === "string" && mapTempToReal.has(String(l.target))) {
+      l.target = mapTempToReal.get(String(l.target));
+    }
+  }
+
+  data.tasks = tasks;
+  data.links = links;
+  return true;
 }
 
 app.get("/api/data", (req, res) => {
@@ -165,6 +217,8 @@ app.post("/api", (req, res) => {
 app.post("/api/tasks", (req, res) => {
   try {
     const raw = readData();
+    console.log("📥 POST /api/tasks", { body: req.body });
+    
     // Suporta tanto substituição total (array) como criação de uma única task (objeto)
     if (Array.isArray(req.body)) {
       raw.tasks = req.body;
@@ -182,15 +236,17 @@ app.post("/api/tasks", (req, res) => {
       typeof incoming.id !== "undefined" && !hasTempId
         ? incoming.id
         : (raw.tasks.reduce((m, t) => (t.id > m ? t.id : m), 0) || 0) + 1;
-    const newTask = flattenAndNormalizeTasks([{ id: nextId, ...incoming }])[0];
+    // Garantir que o id final seja o nextId (não sobrescrever com temp)
+    const newTask = flattenAndNormalizeTasks([{ ...incoming, id: nextId }])[0];
     // Garante consistência mínima de campos comuns
     if (!newTask.start && newTask.end && newTask.duration) {
       // nada a fazer, apenas deixa como veio
     }
     raw.tasks.push(newTask);
     writeData(raw);
-    console.log("➕ Task criada via POST /api/tasks", newTask.id);
-    res.status(201).json({ ok: true, task: newTask });
+    console.log("➕ Task criada via POST /api/tasks", newTask.id, "a partir de", incoming.id);
+    // RestDataProvider espera apenas a tarefa, não um objeto com { ok, task }
+    res.status(201).json(newTask);
   } catch (err) {
     console.error("❌ Erro ao gravar tasks:", err.message);
     res.status(500).json({ error: "Erro ao gravar tasks", details: err.message });
@@ -233,19 +289,43 @@ app.put("/api/tasks/:id", (req, res) => {
     }
     const raw = readData();
     const idParam = req.params.id;
+    const incoming = (req.body && (req.body.task || req.body)) || {};
+    
+    console.log(`📥 PUT /api/tasks/${idParam}`, { body: req.body });
+    
+    // Se for um ID temporário, tenta encontrar pela estrutura da tarefa
+    if (typeof idParam === "string" && idParam.startsWith("temp://")) {
+      console.log(`🔄 Tentando atualizar tarefa temporária ${idParam}:`, incoming);
+      
+      // O problema é que temp:// significa que a tarefa ainda não existe no servidor
+      // Devemos criá-la com um ID real
+      console.log(`⚠️ Tarefa temporária ${idParam} - criando nova tarefa`);
+      const nextId = (raw.tasks.reduce((m, t) => (t.id > m ? t.id : m), 0) || 0) + 1;
+      // Garantir que o id final seja o nextId (não sobrescrever com temp)
+      const newTask = flattenAndNormalizeTasks([{ ...incoming, id: nextId }])[0];
+      raw.tasks.push(newTask);
+      writeData(raw);
+      console.log(`➕ Nova task criada com ID ${newTask.id} a partir de ${idParam}`);
+      // RestDataProvider espera apenas a tarefa, não um objeto com { ok, task }
+      res.status(201).json(newTask);
+      return;
+    }
+    
+    // Comportamento normal para IDs não-temporários
     const idx = raw.tasks.findIndex((t) => String(t.id) === String(idParam));
     if (idx >= 0) {
-      const incoming = (req.body && (req.body.task || req.body)) || {};
       const merged = { ...raw.tasks[idx], ...incoming };
       raw.tasks[idx] = flattenAndNormalizeTasks([merged])[0];
       writeData(raw);
       console.log(`🔄 Task ${raw.tasks[idx].id} atualizada via PUT /api/tasks/:id`);
-      res.json({ ok: true, task: raw.tasks[idx] });
+      // RestDataProvider espera apenas a tarefa, não um objeto com { ok, task }
+      res.json(raw.tasks[idx]);
     } else {
+      console.log(`❌ Task ${idParam} não encontrada`);
       res.status(404).json({ error: "Task não encontrada" });
     }
   } catch (err) {
-    console.error("❌ Erro ao atualizar task:", err.message);
+    console.error("❌ Erro ao atualizar task:", err.message, err.stack);
     res.status(500).json({ error: "Erro ao atualizar task", details: err.message });
   }
 });
