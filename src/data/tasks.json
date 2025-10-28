@@ -1,255 +1,29 @@
 {
   "tasks": [
     {
-      "id": 3,
-      "text": "Tarefa inicial 2",
-      "start": "2025-11-20T09:36:07.000Z",
-      "end": "2025-12-16T09:36:07.000Z",
-      "type": "task",
-      "progress": 52,
-      "parent": 2,
-      "duration": 26,
-      "details": "",
-      "$level": 2,
-      "$x": 843,
-      "$y": 79,
-      "$w": 386,
-      "$h": 31,
-      "$skip": false,
-      "errors": null,
-      "unscheduled": false,
-      "assigned": [
-        1,
-        3
-      ]
-    },
-    {
-      "id": 5,
-      "text": "Tarefa inicial 4",
-      "start": "2025-11-06T09:46:39.000Z",
-      "end": "2025-12-11T09:46:39.000Z",
-      "type": "task",
-      "progress": 0,
-      "parent": 4,
-      "duration": 35,
-      "details": "",
-      "$level": 2,
-      "$x": 643,
-      "$y": 193,
-      "$w": 514,
-      "$h": 31,
-      "$skip": false,
-      "assigned": [
-        2
-      ]
-    },
-    {
-      "id": 8,
-      "text": "Nova subtarefa",
-      "start": "2025-10-28T10:48:46.217Z",
-      "end": "2025-10-29T10:48:46.217Z",
-      "type": "task",
-      "progress": 0,
-      "parent": 2,
-      "unscheduled": false,
-      "duration": 1,
-      "details": "",
-      "$level": 2,
-      "$y": 117,
-      "$x": 414,
-      "$w": 14,
-      "$h": 31,
-      "$skip": false
-    },
-    {
-      "id": 9,
       "type": "task",
       "text": "New Task",
       "unscheduled": false,
-      "parent": 1,
-      "start": "2025-10-10T04:00:00.000Z",
-      "duration": 1,
-      "end": "2025-10-11T04:00:00.000Z",
-      "progress": 0,
-      "details": "",
-      "$level": 2,
-      "$x": 157,
-      "$y": 41,
-      "$w": 29,
-      "$h": 31,
-      "$skip": false
-    },
-    {
-      "id": 13,
-      "text": "New Task",
-      "unscheduled": false,
-      "parent": 1,
-      "start": "2025-10-10T04:00:00.000Z",
-      "duration": 1,
-      "end": "2025-10-11T04:00:00.000Z",
-      "progress": 0,
-      "type": "task",
-      "details": "",
-      "$level": 2,
-      "$x": 157,
-      "$y": 79,
-      "$w": 29,
-      "$h": 31,
-      "$skip": false
-    },
-    {
-      "type": "task",
-      "text": "New Task",
-      "unscheduled": false,
-      "start": "2025-09-25T00:00:00.000Z",
-      "duration": 64,
-      "end": "2025-11-28T01:00:00.000Z",
-      "id": 14,
+      "start": "2025-09-29T00:00:00.000Z",
+      "duration": 37,
+      "end": "2025-11-05T00:00:00.000Z",
+      "id": 1,
       "parent": 0,
       "progress": 0,
       "details": "",
       "$level": 1,
-      "$x": 243,
+      "$x": 200,
       "$y": 3,
-      "$w": 929,
+      "$w": 529,
       "$h": 31,
       "$skip": false,
       "assigned": [
-        4
-      ],
-      "open": true
-    },
-    {
-      "text": "New subtask",
-      "type": "task",
-      "start": "2025-09-23T01:00:00.000Z",
-      "duration": 1,
-      "parent": 14,
-      "unscheduled": false,
-      "end": "2025-09-24T01:00:00.000Z",
-      "id": 15,
-      "progress": 0,
-      "details": "",
-      "$level": 2,
-      "$x": 114,
-      "$y": 41,
-      "$w": 29,
-      "$h": 31,
-      "$skip": false
-    },
-    {
-      "type": "task",
-      "text": "New Task",
-      "unscheduled": false,
-      "parent": 14,
-      "start": "2025-09-23T01:00:00.000Z",
-      "duration": 1,
-      "end": "2025-09-24T01:00:00.000Z",
-      "id": 16,
-      "progress": 0,
-      "details": "",
-      "$level": 2,
-      "$y": 41,
-      "$x": 114,
-      "$w": 29,
-      "$h": 31,
-      "$skip": false
-    },
-    {
-      "type": "task",
-      "text": "New Task",
-      "unscheduled": false,
-      "parent": 0,
-      "start": "2025-09-18T03:00:00.000Z",
-      "duration": 60,
-      "end": "2025-11-17T01:00:00.000Z",
-      "id": 17,
-      "progress": 0,
-      "details": "",
-      "$level": 1,
-      "$x": 243,
-      "$y": 41,
-      "$w": 871,
-      "$h": 31,
-      "$skip": false,
-      "open": true,
-      "assigned": [
-        2
+        1
       ]
-    },
-    {
-      "type": "task",
-      "text": "New Task",
-      "unscheduled": false,
-      "parent": 0,
-      "start": "2025-09-29T03:00:00.000Z",
-      "duration": 58,
-      "end": "2025-11-26T01:00:00.000Z",
-      "id": 19,
-      "progress": 62,
-      "details": "",
-      "$level": 1,
-      "$x": 400,
-      "$y": 117,
-      "$w": 843,
-      "$h": 31,
-      "$skip": false,
-      "assigned": [
-        3,
-        2
-      ]
-    },
-    {
-      "text": "New subtask",
-      "type": "task",
-      "start": "2025-09-28T04:00:00.000Z",
-      "duration": 1,
-      "parent": 20,
-      "unscheduled": false,
-      "end": "2025-09-29T04:00:00.000Z",
-      "id": 21,
-      "progress": 0,
-      "details": "",
-      "$level": 2,
-      "$x": 386,
-      "$y": 193,
-      "$w": 29,
-      "$h": 31,
-      "$skip": false
     }
   ],
-  "links": [
-    {
-      "id": "temp://1761663052350",
-      "source": 19,
-      "target": 18,
-      "type": "s2e"
-    },
-    {
-      "id": "temp://1761663052352",
-      "source": 18,
-      "target": 19,
-      "type": "e2s"
-    },
-    {
-      "id": "temp://1761663052354",
-      "source": 20,
-      "target": 21,
-      "type": "e2s"
-    }
-  ],
-  "scales": [
-    {
-      "unit": "month",
-      "step": 1,
-      "format": "MMMM yyyy"
-    },
-    {
-      "unit": "day",
-      "step": 1,
-      "format": "d"
-    }
-  ],
+  "links": [],
+  "scales": [],
   "users": [
     {
       "id": 1,

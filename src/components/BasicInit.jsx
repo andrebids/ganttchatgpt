@@ -21,11 +21,13 @@ export default function BasicInit({ skinSettings }) {
   const [editorTaskId, setEditorTaskId] = useState(null);
   const [assignDialog, setAssignDialog] = useState({ open: false, id: null });
 
-  // Carrega os dados iniciais - exatamente como no exemplo oficial
+  // Carrega os dados iniciais - robusto a diferentes formatos de retorno
   useEffect(() => {
-    restProvider.getData().then(({ tasks: t, links: l }) => {
-      setTasks(t);
-      setLinks(l);
+    restProvider.getData().then((res) => {
+      const tasksData = res?.tasks ?? res?.data?.tasks ?? [];
+      const linksData = res?.links ?? res?.data?.links ?? [];
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
+      setLinks(Array.isArray(linksData) ? linksData : []);
     });
     // carrega catálogo de utilizadores
     fetch("http://localhost:3025/api/users")
@@ -41,8 +43,16 @@ export default function BasicInit({ skinSettings }) {
     api.setNext(restProvider);
     // Carregamento dinâmico
     api.on("request-data", (ev) => {
-      restProvider.getData(ev.id).then(({ tasks, links }) => {
-        api.exec("provide-data", { id: ev.id, data: { tasks, links } });
+      restProvider.getData(ev.id).then((res) => {
+        const tasksData = res?.tasks ?? res?.data?.tasks ?? [];
+        const linksData = res?.links ?? res?.data?.links ?? [];
+        api.exec("provide-data", {
+          id: ev.id,
+          data: {
+            tasks: Array.isArray(tasksData) ? tasksData : [],
+            links: Array.isArray(linksData) ? linksData : [],
+          },
+        });
       });
     });
     // Abrir Editor ao clicar

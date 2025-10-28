@@ -1,13 +1,1 @@
-{
-  "tasks": [
-    {
-      "id": 1,
-      "text": "Tarefa exemplo",
-      "start": "2025-10-01",
-      "end": "2025-10-03",
-      "type": "task",
-      "progress": 0
-    }
-  ],
-  "links": []
-}
+{ "tasks": [], "links": [], "scales": [], "users": [] }

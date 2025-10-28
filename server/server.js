@@ -84,12 +84,41 @@ function readData() {
     updated = true;
   }
 
+  // Garante que tasks/links existem como arrays
+  if (!Array.isArray(data.tasks)) {
+    data.tasks = [];
+    updated = true;
+  }
+  if (!Array.isArray(data.links)) {
+    data.links = [];
+    updated = true;
+  }
+
   // Passo 2: migrar quaisquer IDs temporários para IDs numéricos e corrigir referências
   // Executa migração de temp ids apenas uma vez por arranque
   if (!__tempIdsMigrated) {
     const changedByIdFix = normalizeTempIds(data);
     if (changedByIdFix) updated = true;
     __tempIdsMigrated = true;
+  }
+
+  // Passo 3: remover links inválidos que apontam para tarefas inexistentes
+  const idSet = new Set((data.tasks || []).map((t) => String(t.id)));
+  const filteredLinks = (data.links || []).filter(
+    (l) => idSet.has(String(l.source)) && idSet.has(String(l.target))
+  );
+  if (filteredLinks.length !== (data.links || []).length) {
+    data.links = filteredLinks;
+    updated = true;
+  }
+
+  // Passo 4: normalizar parents inexistentes para 0 (raiz)
+  for (const t of data.tasks) {
+    const hasParent = typeof t.parent !== "undefined" && t.parent !== null;
+    if (hasParent && String(t.parent) !== "0" && !idSet.has(String(t.parent))) {
+      t.parent = 0;
+      updated = true;
+    }
   }
 
   if (updated) {
