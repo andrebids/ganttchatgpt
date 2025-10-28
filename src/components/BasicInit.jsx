@@ -11,7 +11,6 @@ export default function BasicInit({ skinSettings }) {
   const [api, setApi] = useState();
   const [tasks, setTasks] = useState();
   const [links, setLinks] = useState();
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   // (sem override de columns) — usa colunas padrão do Gantt
 
@@ -86,13 +85,6 @@ export default function BasicInit({ skinSettings }) {
         console.log("🔄 Task atualizada via drag/resize:", ev);
       });
 
-      // Guarda seleção atual para permitir adicionar subtarefas
-      api.on("select-task", (ev) => {
-        const id = ev?.id ?? ev?.task?.id;
-        if (id != null) setSelectedTaskId(id);
-      });
-      api.on("unselect-task", () => setSelectedTaskId(null));
-
       api.on("add-task", (ev) => {
         console.log("➕ Nova tarefa adicionada:", ev);
       });
@@ -130,99 +122,11 @@ export default function BasicInit({ skinSettings }) {
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div
-        style={{
-          padding: "8px 12px",
-          background: "#1a1a1a",
-          borderBottom: "1px solid #333",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <span style={{ color: "#ccc", fontWeight: "bold" }}>Painel de Projetos</span>
-        <button
-          onClick={() => {
-            if (!api) return;
-            const start = new Date();
-            const end = new Date(start);
-            end.setDate(start.getDate() + 2);
-            const task = {
-              text: "Nova tarefa",
-              start: start.toISOString(),
-              end: end.toISOString(),
-              type: "task",
-              progress: 0,
-              parent: 0,
-            };
-            api.exec("add-task", { task });
-          }}
-          style={{
-            background: "#2b2b2b",
-            color: "#ddd",
-            border: "1px solid #444",
-            padding: "6px 10px",
-            borderRadius: 6,
-            cursor: "pointer"
-          }}
-        >
-          Adicionar Tarefa
-        </button>
-        <button
-          onClick={() => {
-            if (!api || selectedTaskId == null) return;
-            const start = new Date();
-            const end = new Date(start);
-            end.setDate(start.getDate() + 1);
-            const task = {
-              text: "Nova subtarefa",
-              start: start.toISOString(),
-              end: end.toISOString(),
-              type: "task",
-              progress: 0,
-              parent: selectedTaskId,
-            };
-            api.exec("add-task", { task });
-          }}
-          style={{
-            background: "#2b2b2b",
-            color: "#ddd",
-            border: "1px solid #444",
-            padding: "6px 10px",
-            borderRadius: 6,
-            cursor: selectedTaskId == null ? "not-allowed" : "pointer",
-            opacity: selectedTaskId == null ? 0.6 : 1,
-            marginLeft: 8
-          }}
-          title={selectedTaskId == null ? "Seleciona uma tarefa para adicionar subtarefa" : ""}
-        >
-          Adicionar Subtarefa
-        </button>
-        <button
-          onClick={() => {
-            if (!api || selectedTaskId == null) return;
-            console.log("🧭 Botão abrir editor para id:", selectedTaskId);
-            api.exec("show-editor", { id: selectedTaskId });
-          }}
-          style={{
-            background: "#2b2b2b",
-            color: "#ddd",
-            border: "1px solid #444",
-            padding: "6px 10px",
-            borderRadius: 6,
-            cursor: selectedTaskId == null ? "not-allowed" : "pointer",
-            opacity: selectedTaskId == null ? 0.6 : 1,
-            marginLeft: 8
-          }}
-          title={selectedTaskId == null ? "Seleciona uma tarefa para editar" : ""}
-        >
-          Editar Selecionada
-        </button>
-      </div>
 
       <div style={{ flexGrow: 1 }}>
         <ContextMenu api={api}>
           <Fullscreen hotkey="ctrl+shift+f">
+            <Toolbar api={api} />
             <Gantt
               {...skinSettings}
               editable={true}
@@ -234,7 +138,6 @@ export default function BasicInit({ skinSettings }) {
                 { unit: "week", step: 1, format: "II" },
               ]}
             >
-              <Toolbar />
             </Gantt>
           </Fullscreen>
         </ContextMenu>

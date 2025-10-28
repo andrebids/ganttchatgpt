@@ -218,6 +218,19 @@
       "$w": 29,
       "$h": 31,
       "$skip": false
+    },
+    {
+      "id": "temp://1761651418290",
+      "type": "task",
+      "text": "New Task",
+      "unscheduled": false,
+      "start": "2025-10-10T06:00:00.000Z",
+      "duration": 1,
+      "end": "2025-10-11T06:00:00.000Z",
+      "parent": 0,
+      "progress": 0,
+      "details": "",
+      "$level": 1
     }
   ],
   "links": [],
