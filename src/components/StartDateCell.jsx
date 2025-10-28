@@ -26,12 +26,27 @@ export default function StartDateCell({ row, api }) {
       }}
       style={{
         width: "100%",
-        background: "transparent",
+        background: "rgba(255, 255, 255, 0.05)",
         color: "inherit",
-        border: "1px solid rgba(203,213,225,.25)",
-        borderRadius: 4,
-        height: 24,
-        padding: "0 6px",
+        border: "1px solid rgba(203,213,225,.15)",
+        borderRadius: 6,
+        height: 28,
+        padding: "2px 8px",
+        fontSize: "13px",
+        fontFamily: "inherit",
+        outline: "none",
+        transition: "all 0.2s ease",
+        cursor: "pointer",
+      }}
+      onFocus={(e) => {
+        e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
+        e.target.style.background = "rgba(255, 255, 255, 0.1)";
+        e.target.style.boxShadow = "0 0 0 2px rgba(59, 130, 246, 0.1)";
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = "rgba(203,213,225,.15)";
+        e.target.style.background = "rgba(255, 255, 255, 0.05)";
+        e.target.style.boxShadow = "none";
       }}
     />
   );
