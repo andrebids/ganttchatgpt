@@ -20,8 +20,12 @@ export default function AvatarCell({ row, users, onEdit }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onMouseDown={(e) => { e.preventDefault(); onEdit?.(row?.id); }}
       onClick={() => onEdit?.(row?.id)}
-      style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onEdit?.(row?.id); }}
+      style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer", width: "100%" }}
       title={people.length ? people.map((p) => p.name).join(", ") : "Unassigned"}
     >
       {people.length ? (

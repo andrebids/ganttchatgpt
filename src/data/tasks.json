@@ -199,7 +199,7 @@
       "text": "New Task",
       "unscheduled": false,
       "parent": 0,
-      "start": "2025-09-24T01:00:00.000Z",
+      "start": "2025-09-24T02:00:00.000Z",
       "duration": 63,
       "end": "2025-11-26T01:00:00.000Z",
       "id": 19,
@@ -212,7 +212,8 @@
       "$h": 31,
       "$skip": false,
       "assigned": [
-        3
+        3,
+        2
       ]
     },
     {
