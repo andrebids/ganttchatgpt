@@ -85,8 +85,8 @@ export default function BasicInit({ skinSettings }) {
               init={init}
               columns={[
                 { id: "text", header: "Task", width: 220, cell: NameAndDateCell },
-                { id: "start", header: "Start date", width: 95, cell: (props) => <StartDateCell {...props} api={api} /> },
-                { id: "end", header: "End date", width: 95, cell: (props) => <EndDateCell {...props} api={api} /> },
+                { id: "start", header: "Start date", width: 110, cell: (props) => <StartDateCell {...props} api={api} /> },
+                { id: "end", header: "End date", width: 110, cell: (props) => <EndDateCell {...props} api={api} /> },
                 { id: "weeks", header: "Weeks", width: 55, align: "center", cell: WeeksCell },
                 {
                   id: "assigned",
