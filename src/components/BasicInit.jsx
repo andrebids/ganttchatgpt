@@ -116,7 +116,7 @@ export default function BasicInit({ skinSettings }) {
               init={init}
               scales={[
                 { unit: "month", step: 1, format: "MMMM yyyy" },
-                { unit: "day", step: 1, format: "d" },
+                { unit: "week", step: 1, format: "II" },
               ]}
             >
               <Toolbar />
