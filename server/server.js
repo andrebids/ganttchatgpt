@@ -207,6 +207,31 @@ app.get("/api/links", (req, res) => {
   }
 });
 
+// Endpoints para utilizadores (catálogo de responsáveis)
+app.get("/api/users", (req, res) => {
+  try {
+    const json = readData();
+    res.json(json.users || []);
+  } catch (err) {
+    console.error("❌ Erro ao ler users:", err.message);
+    res.status(500).json({ error: "Erro ao ler users", details: err.message });
+  }
+});
+
+app.post("/api/users", (req, res) => {
+  try {
+    const raw = readData();
+    const incoming = Array.isArray(req.body) ? req.body : (req.body && req.body.users) || [];
+    raw.users = incoming;
+    writeData(raw);
+    console.log("📝 Users substituídos via POST /api/users (array)");
+    res.json({ ok: true, users: raw.users });
+  } catch (err) {
+    console.error("❌ Erro ao gravar users:", err.message);
+    res.status(500).json({ error: "Erro ao gravar users", details: err.message });
+  }
+});
+
 app.post("/api", (req, res) => {
   try {
     fs.writeFileSync(DATA_PATH, JSON.stringify(req.body, null, 2));

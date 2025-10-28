@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Gantt, Toolbar, Editor, ContextMenu, Fullscreen } from "@svar-ui/react-gantt";
 import { RestDataProvider } from "@svar-ui/gantt-data-provider";
+import AvatarCell from "./AvatarCell.jsx";
+import AssignDialog from "./AssignDialog.jsx";
+import NameAndDateCell from "./NameAndDateCell.jsx";
+import AddTaskCell from "./AddTaskCell.jsx";
+import StartDateCell from "./StartDateCell.jsx";
+import EditorAssignDropdown from "./EditorAssignDropdown.jsx";
 
 export default function BasicInit({ skinSettings }) {
   const restProvider = useMemo(
@@ -11,6 +17,9 @@ export default function BasicInit({ skinSettings }) {
   const [api, setApi] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [links, setLinks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [editorTaskId, setEditorTaskId] = useState(null);
+  const [assignDialog, setAssignDialog] = useState({ open: false, id: null });
 
   // Carrega os dados iniciais - exatamente como no exemplo oficial
   useEffect(() => {
@@ -18,6 +27,11 @@ export default function BasicInit({ skinSettings }) {
       setTasks(t);
       setLinks(l);
     });
+    // carrega catálogo de utilizadores
+    fetch("http://localhost:3025/api/users")
+      .then((r) => r.json())
+      .then((u) => setUsers(u))
+      .catch(() => setUsers([]));
   }, [restProvider]);
 
   // Inicializa o Gantt - exatamente como no exemplo oficial
@@ -34,8 +48,15 @@ export default function BasicInit({ skinSettings }) {
     // Abrir Editor ao clicar
     api.on("click-task", (ev) => {
       if (!ev || ev.id == null) return;
+      setEditorTaskId(ev.id);
       api.exec("show-editor", { id: ev.id });
     });
+
+    // Reage quando o editor é aberto/fechado por outros caminhos (toolbar, etc.)
+    api.on?.("show-editor", (ev) => {
+      if (ev?.id != null) setEditorTaskId(ev.id);
+    });
+    api.on?.("hide-editor", () => setEditorTaskId(null));
   }, [restProvider]);
 
   return (
@@ -50,6 +71,25 @@ export default function BasicInit({ skinSettings }) {
               tasks={tasks}
               links={links}
               init={init}
+              columns={[
+                { id: "text", header: "Task", width: 220, cell: NameAndDateCell },
+                { id: "start", header: "Start date", width: 160, cell: (props) => <StartDateCell {...props} api={api} /> },
+                {
+                  id: "assigned",
+                  header: "Assigned",
+                  width: 120,
+                  cell: (props) => (
+                    <AvatarCell {...props} users={users} onEdit={(taskId) => setAssignDialog({ open: true, id: taskId })} />
+                  ),
+                },
+                {
+                  id: "add-task",
+                  header: { text: "" },
+                  width: 80,
+                  align: "center",
+                  cell: (props) => <AddTaskCell {...props} api={api} />,
+                },
+              ]}
               scales={[
                 { unit: "month", step: 1, format: "MMMM yyyy" },
                 { unit: "week", step: 1, format: "II" },
@@ -57,7 +97,33 @@ export default function BasicInit({ skinSettings }) {
             />
           </Fullscreen>
         </ContextMenu>
-        {api && <Editor api={api} />}
+        {api && (
+          <div style={{ position: "relative" }}>
+            <Editor api={api} />
+            {editorTaskId != null && (
+              <EditorAssignDropdown
+                api={api}
+                users={users}
+                taskId={editorTaskId}
+                onSave={(ids) => {
+                  api?.exec("update-task", { id: editorTaskId, task: { assigned: ids } });
+                }}
+              />
+            )}
+          </div>
+        )}
+        {/* O diálogo de atribuição direto pela célula continua disponível */}
+        <AssignDialog
+          open={assignDialog.open}
+          task={tasks?.find((t) => String(t.id) === String(assignDialog.id))}
+          users={users}
+          onClose={() => setAssignDialog({ open: false, id: null })}
+          onSave={(ids) => {
+            const id = assignDialog.id;
+            api?.exec("update-task", { id, task: { assigned: ids } });
+            setAssignDialog({ open: false, id: null });
+          }}
+        />
       </div>
     </div>
   );
