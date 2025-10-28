@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { getAvatarColor } from "../utils/avatarColors.js";
 
 export default function AssignDialog({ open, task, users, onClose, onSave }) {
   const initialChecked = useMemo(() => new Set(Array.isArray(task?.assigned) ? task.assigned.map(String) : []), [task]);
@@ -39,7 +40,7 @@ export default function AssignDialog({ open, task, users, onClose, onSave }) {
                   }}
                 />
                 <div style={{
-                  width: 22, height: 22, borderRadius: "50%", background: "#4f46e5", color: "#fff",
+                  width: 22, height: 22, borderRadius: "50%", background: getAvatarColor(u), color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11,
                 }}>
                   {u.name?.slice(0,1)?.toUpperCase()}

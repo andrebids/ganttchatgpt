@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { getAvatarColor } from "../utils/avatarColors.js";
 
 function initials(name) {
   if (!name) return "?";
@@ -54,7 +55,7 @@ export default function EditorAssignDropdown({ api, users, taskId, onSave }) {
           <div style={{ display: "flex", gap: 6 }}>
             {selected.slice(0, 3).map((p) => (
               <div key={p.id} style={{
-                width: 20, height: 20, borderRadius: "50%", background: "#4f46e5", color: "#fff",
+                width: 20, height: 20, borderRadius: "50%", background: getAvatarColor(p), color: "#fff",
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11,
               }}>{initials(p.name)}</div>
             ))}
@@ -95,7 +96,7 @@ export default function EditorAssignDropdown({ api, users, taskId, onSave }) {
                     }}
                   />
                   <div style={{
-                    width: 20, height: 20, borderRadius: "50%", background: "#4f46e5", color: "#fff",
+                    width: 20, height: 20, borderRadius: "50%", background: getAvatarColor(u), color: "#fff",
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11,
                   }}>{initials(u.name)}</div>
                   <span>{u.name}</span>

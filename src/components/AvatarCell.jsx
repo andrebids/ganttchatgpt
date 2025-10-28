@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { getAvatarColor } from "../utils/avatarColors.js";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -36,7 +37,7 @@ export default function AvatarCell({ row, users, onEdit }) {
               width: 24,
               height: 24,
               borderRadius: "50%",
-              background: "#4f46e5",
+              background: getAvatarColor(p),
               color: "#fff",
               fontSize: 12,
               display: "flex",
