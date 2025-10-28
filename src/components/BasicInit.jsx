@@ -1,76 +1,70 @@
-import React, { useEffect, useState } from "react";
-import { Gantt, Toolbar, Editor, ContextMenu } from "@svar-ui/react-gantt";
-import axios from "axios";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Gantt, Toolbar, Editor, ContextMenu, Fullscreen } from "@svar-ui/react-gantt";
+import { RestDataProvider } from "@svar-ui/gantt-data-provider";
 
 export default function BasicInit({ skinSettings }) {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
+  const restProvider = useMemo(
+    () => new RestDataProvider("http://localhost:3025/api"),
+    []
+  );
 
+  const [api, setApi] = useState();
+  const [tasks, setTasks] = useState();
+  const [links, setLinks] = useState();
+
+  // Carrega os dados iniciais do JSON
   useEffect(() => {
-    axios
-      .get("http://localhost:3025/api/data")
-      .then((res) => {
-        if (res.data && Array.isArray(res.data.tasks)) {
-          setData(res.data);
-        } else {
-          throw new Error("Formato de dados inválido");
-        }
-      })
-      .catch((err) => {
-        console.error("❌ Erro ao carregar dados:", err);
-        setError(err.message);
+    restProvider.getData().then(({ tasks: t, links: l }) => {
+      setTasks(t);
+      setLinks(l);
+      console.log("📦 Dados carregados do backend:", { t, l });
+    });
+  }, [restProvider]);
+
+  // Inicializa o Gantt e liga o Event Bus
+  const init = useCallback(
+    (api) => {
+      console.log("🔌 Ligado ao Event Bus do Gantt");
+      setApi(api);
+
+      // Liga o backend como "next" na cadeia de eventos
+      api.setNext(restProvider);
+
+      // Handler para request-data (importante para o funcionamento correto)
+      api.on("request-data", (ev) => {
+        restProvider.getData(ev.id).then(({ tasks, links }) => {
+          api.exec("provide-data", {
+            id: ev.id,
+            data: {
+              tasks,
+              links,
+            },
+          });
+        });
       });
-  }, []);
 
-  const handleChange = (tasks, links) => {
-    if (!data) return;
-    const updated = { ...data, tasks, links };
-    setData(updated);
-    axios.post("http://localhost:3025/api/data", updated).catch(console.error);
-  };
+      // Loga os eventos principais
+      api.on("update-task", (ev) => {
+        console.log("🔄 Task atualizada via drag/resize:", ev);
+      });
 
-  const handleAddProject = () => {
-    if (!data) return;
-    const tasks = [...data.tasks];
-    const nextId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1;
-    const now = new Date();
+      api.on("add-task", (ev) => {
+        console.log("➕ Nova tarefa adicionada:", ev);
+      });
 
-    const newProject = {
-      id: nextId,
-      text: `Novo Projeto ${nextId}`,
-      start: now,
-      end: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-      type: "summary",
-      progress: 0,
-      open: true,
-      parent: 0
-    };
+      api.on("delete-task", (ev) => {
+        console.log("❌ Tarefa removida:", ev);
+      });
 
-    const subtask = {
-      id: nextId + 1,
-      text: `Tarefa inicial ${nextId}`,
-      start: now,
-      end: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
-      type: "task",
-      progress: 0,
-      parent: nextId
-    };
-
-    const updated = {
-      ...data,
-      tasks: [...tasks, newProject, subtask]
-    };
-
-    setData(updated);
-    axios.post("http://localhost:3025/api/data", updated).catch(console.error);
-  };
-
-  if (error) return <div style={{ color: "red" }}>Erro: {error}</div>;
-  if (!data) return <div>A carregar dados do Gantt...</div>;
+      api.on("move-task", (ev) => {
+        console.log("🚚 Tarefa movida:", ev);
+      });
+    },
+    [restProvider]
+  );
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Barra superior com o botão custom */}
       <div
         style={{
           padding: "8px 12px",
@@ -83,33 +77,53 @@ export default function BasicInit({ skinSettings }) {
       >
         <span style={{ color: "#ccc", fontWeight: "bold" }}>Painel de Projetos</span>
         <button
-          onClick={handleAddProject}
+          onClick={() => {
+            if (!api) return;
+            const start = new Date();
+            const end = new Date(start);
+            end.setDate(start.getDate() + 2);
+            const task = {
+              text: "Nova tarefa",
+              start: start.toISOString(),
+              end: end.toISOString(),
+              type: "task",
+              progress: 0,
+              parent: 0,
+            };
+            api.exec("add-task", { task });
+          }}
           style={{
-            background: "#3983eb",
-            color: "#fff",
-            border: "none",
-            padding: "6px 12px",
-            borderRadius: "4px",
+            background: "#2b2b2b",
+            color: "#ddd",
+            border: "1px solid #444",
+            padding: "6px 10px",
+            borderRadius: 6,
             cursor: "pointer"
           }}
         >
-          + Novo Projeto
+          Adicionar Tarefa
         </button>
       </div>
 
-      {/* O Gantt com tudo dentro */}
       <div style={{ flexGrow: 1 }}>
-        <Gantt
-          {...skinSettings}
-          tasks={data.tasks}
-          links={data.links}
-          scales={data.scales}
-          onChange={handleChange}
-        >
-          <Toolbar />
-          <Editor />
-          <ContextMenu />
-        </Gantt>
+        <ContextMenu api={api}>
+          <Fullscreen hotkey="ctrl+shift+f">
+            <Gantt
+              {...skinSettings}
+              editable={true}
+              tasks={tasks}
+              links={links}
+              init={init}
+              scales={[
+                { unit: "month", step: 1, format: "MMMM yyyy" },
+                { unit: "day", step: 1, format: "d" },
+              ]}
+            >
+              <Toolbar />
+            </Gantt>
+          </Fullscreen>
+        </ContextMenu>
+        {api && <Editor api={api} />}
       </div>
     </div>
   );

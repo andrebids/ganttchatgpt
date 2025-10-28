@@ -3,11 +3,19 @@
     {
       "id": 1,
       "text": "Exemplo inicial",
-      "start": "2025-10-01",
-      "end": "2025-10-05",
-      "duration": 5,
+      "start": "2025-10-10T02:00:00.000Z",
+      "end": "2025-10-13T02:00:00.000Z",
+      "duration": 3,
       "progress": 0.4,
-      "type": "task"
+      "type": "task",
+      "parent": 0,
+      "details": "",
+      "$level": 1,
+      "$x": 100,
+      "$y": 3,
+      "$w": 400,
+      "$h": 31,
+      "$skip": false
     },
     {
       "id": 2,
@@ -17,7 +25,8 @@
       "type": "summary",
       "progress": 0,
       "open": true,
-      "parent": 0
+      "parent": 0,
+      "duration": 7
     },
     {
       "id": 3,
@@ -26,7 +35,53 @@
       "end": "2025-10-30T09:36:07.655Z",
       "type": "task",
       "progress": 0,
-      "parent": 2
+      "parent": 2,
+      "duration": 2
+    },
+    {
+      "id": 4,
+      "text": "Novo Projeto 4",
+      "start": "2025-10-28T09:46:39.447Z",
+      "end": "2025-11-04T09:46:39.447Z",
+      "type": "summary",
+      "progress": 0,
+      "open": true,
+      "parent": 0
+    },
+    {
+      "id": 5,
+      "text": "Tarefa inicial 4",
+      "start": "2025-10-28T09:46:39.447Z",
+      "end": "2025-10-30T09:46:39.447Z",
+      "type": "task",
+      "progress": 0,
+      "parent": 4
+    },
+    {
+      "text": "Nova tarefa",
+      "start": "2025-10-28T10:30:57.777Z",
+      "end": "2025-10-30T10:30:57.777Z",
+      "type": "task",
+      "progress": 0,
+      "parent": 0,
+      "unscheduled": false,
+      "duration": 2,
+      "id": "temp://1761647456160",
+      "details": "",
+      "$level": 1
+    },
+    {
+      "id": "temp://1761647653324",
+      "text": "Nova tarefa",
+      "start": "2025-10-28T10:34:18.904Z",
+      "end": "2025-10-30T10:34:18.904Z",
+      "type": "task",
+      "progress": 0,
+      "parent": 0,
+      "unscheduled": false,
+      "duration": 2,
+      "details": "",
+      "$level": 1
     }
   ],
   "links": [],
