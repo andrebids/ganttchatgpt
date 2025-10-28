@@ -21,8 +21,8 @@ function parseDate(dateStr) {
   return new Date(Date.UTC(year, month, day));
 }
 
-export default function StartDateCell({ row, api }) {
-  const displayValue = formatDateDisplay(row?.start);
+export default function EndDateCell({ row, api }) {
+  const displayValue = formatDateDisplay(row?.end);
   
   const handleClick = () => {
     const newDate = prompt("Enter date (dd/mm/yyyy):", displayValue);
@@ -35,8 +35,16 @@ export default function StartDateCell({ row, api }) {
     }
     
     const iso = parsedDate.toISOString();
-    const payload = { start: iso };
-    if (typeof row?.duration === "number") payload.duration = row.duration;
+    const payload = { end: iso };
+    
+    // Calculate duration based on start and new end
+    if (row?.start) {
+      const startDate = new Date(row.start);
+      const diffTime = parsedDate - startDate;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      payload.duration = Math.max(1, diffDays); // Minimum 1 day
+    }
+    
     api?.exec("update-task", { id: row?.id, task: payload });
   };
   
@@ -73,5 +81,4 @@ export default function StartDateCell({ row, api }) {
     </div>
   );
 }
-
 

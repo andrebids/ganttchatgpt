@@ -4,22 +4,28 @@
       "type": "task",
       "text": "New Task",
       "unscheduled": false,
-      "start": "2025-09-29T00:00:00.000Z",
-      "duration": 37,
-      "end": "2025-11-05T00:00:00.000Z",
+      "start": "2025-09-23T01:00:00.000Z",
+      "duration": 66,
+      "end": "2025-11-28T00:00:00.000Z",
       "id": 1,
       "parent": 0,
       "progress": 0,
       "details": "",
       "$level": 1,
-      "$x": 200,
+      "$x": 214,
       "$y": 3,
-      "$w": 529,
+      "$w": 943,
       "$h": 31,
       "$skip": false,
       "assigned": [
-        1
-      ]
+        1,
+        2,
+        3,
+        4
+      ],
+      "operation": "move",
+      "target": 1,
+      "mode": "before"
     }
   ],
   "links": [],
@@ -37,7 +43,7 @@
     },
     {
       "id": 3,
-      "name": "Carlos",
+      "name": "Felipe",
       "color": "#3B82F6"
     },
     {

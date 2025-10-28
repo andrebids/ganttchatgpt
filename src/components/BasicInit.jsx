@@ -6,6 +6,8 @@ import AssignDialog from "./AssignDialog.jsx";
 import NameAndDateCell from "./NameAndDateCell.jsx";
 import AddTaskCell from "./AddTaskCell.jsx";
 import StartDateCell from "./StartDateCell.jsx";
+import EndDateCell from "./EndDateCell.jsx";
+import WeeksCell from "./WeeksCell.jsx";
 import EditorAssignDropdown from "./EditorAssignDropdown.jsx";
 
 export default function BasicInit({ skinSettings }) {
@@ -83,11 +85,13 @@ export default function BasicInit({ skinSettings }) {
               init={init}
               columns={[
                 { id: "text", header: "Task", width: 220, cell: NameAndDateCell },
-                { id: "start", header: "Start date", width: 160, cell: (props) => <StartDateCell {...props} api={api} /> },
+                { id: "start", header: "Start date", width: 95, cell: (props) => <StartDateCell {...props} api={api} /> },
+                { id: "end", header: "End date", width: 95, cell: (props) => <EndDateCell {...props} api={api} /> },
+                { id: "weeks", header: "Weeks", width: 55, align: "center", cell: WeeksCell },
                 {
                   id: "assigned",
                   header: "Assigned",
-                  width: 120,
+                  width: 100,
                   cell: (props) => (
                     <AvatarCell {...props} users={users} onEdit={(taskId) => setAssignDialog({ open: true, id: taskId })} />
                   ),
