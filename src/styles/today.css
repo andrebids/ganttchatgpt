@@ -1,0 +1,18 @@
+/* linha fina vermelha vertical, cobrindo todo o timeline */
+.today-marker {
+  border-left: 1px solid #e10600 !important;
+  position: relative;
+}
+
+.today-marker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: #e10600;
+  pointer-events: none;
+}
+
+

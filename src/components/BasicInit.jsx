@@ -83,6 +83,12 @@ export default function BasicInit({ skinSettings }) {
               tasks={tasks}
               links={links}
               init={init}
+              markers={[{ start: new Date(), text: "Today", css: "today-marker" }]}
+              highlightTime={(date, unit) => {
+                const now = new Date();
+                const isSameDay = date?.toDateString?.() === now.toDateString();
+                return unit === "day" && isSameDay ? "today-marker" : "";
+              }}
               columns={[
                 { id: "text", header: "Task", width: 220, cell: NameAndDateCell },
                 { id: "start", header: "Start date", width: 110, cell: (props) => <StartDateCell {...props} api={api} /> },
