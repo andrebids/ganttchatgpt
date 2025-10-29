@@ -56,12 +56,10 @@ jobs:
             # Não criar/alterar data/tasks.json aqui.
             
             # Criar ficheiro .env.production com variáveis de autenticação
-            cat > .env.production << EOF
-VITE_API_URL=/api
-AUTH_PASSWORD_HASH=${{ secrets.AUTH_PASSWORD_HASH }}
-AUTH_COOKIE_SECRET=${{ secrets.AUTH_COOKIE_SECRET }}
-CORS_ORIGIN=https://gantt.dsproject.pt
-EOF
+            echo "VITE_API_URL=/api" > .env.production
+            echo "AUTH_PASSWORD_HASH=${{ secrets.AUTH_PASSWORD_HASH }}" >> .env.production
+            echo "AUTH_COOKIE_SECRET=${{ secrets.AUTH_COOKIE_SECRET }}" >> .env.production
+            echo "CORS_ORIGIN=https://gantt.dsproject.pt" >> .env.production
             
             # Instalar dependências e fazer build
             npm ci --omit=dev
