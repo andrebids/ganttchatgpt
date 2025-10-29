@@ -5,6 +5,14 @@ import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import dotenv from "dotenv";
+
+// Load environment variables from .env files
+const ENV_FILE = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+try {
+  const envPath = path.resolve(process.cwd(), ENV_FILE);
+  dotenv.config({ path: envPath });
+} catch (_) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
