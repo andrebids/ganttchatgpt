@@ -65,7 +65,12 @@ function flattenAndNormalizeTasks(tasks) {
       const startDate = new Date(start);
       end = new Date(startDate.getTime() + t.duration * 24 * 60 * 60 * 1000).toISOString();
     }
-    return { ...t, start, end };
+
+    // Evita enviar start/end nulos, o que pode fazer o Gantt recuar para 1970
+    const normalized = { ...t };
+    if (start) normalized.start = start; else delete normalized.start;
+    if (end) normalized.end = end; else delete normalized.end;
+    return normalized;
   });
   return flat;
 }
