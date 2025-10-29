@@ -28,7 +28,7 @@ jobs:
       - name: Upload project to VM (rsync)
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -az --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.github'
+          switches: -az --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.github' --exclude='data'
           path: ./
           remote_path: ${{ secrets.APP_DIR }}
           remote_host: ${{ secrets.SSH_HOST }}
@@ -49,14 +49,8 @@ jobs:
             # Criar diretórios necessários
             mkdir -p data logs
             
-            # Inicializar/semear ficheiro de dados se ausente ou muito pequeno (<100B)
-            if [ ! -f data/tasks.json ] || [ $(wc -c < data/tasks.json 2>/dev/null || echo 0) -lt 100 ]; then
-              if [ -f src/data/tasks.json ]; then
-                cp -f src/data/tasks.json data/tasks.json
-              else
-                echo '{"tasks":[],"links":[],"users":[]}' > data/tasks.json
-              fi
-            fi
+            # Nunca tocar na base de dados do servidor. Apenas garantir diretórios.
+            # Não criar/alterar data/tasks.json aqui.
             
             # Criar ficheiro .env.production (se não existir)
             if [ ! -f .env.production ]; then
