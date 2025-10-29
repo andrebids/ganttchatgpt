@@ -19,6 +19,9 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Regenerate package-lock.json
+        run: npm install
+
       - name: Install dependencies
         run: npm ci
 
