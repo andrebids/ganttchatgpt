@@ -633,9 +633,10 @@ app.delete("/api/:id", (req, res) => {
 
 // Fallback para SPA - deve vir DEPOIS das rotas API
 // Serve o index.html para todas as rotas não-API (permite SPA routing)
+// NÃO proteger com requireAuth aqui - o AuthGate no frontend é que pede a senha
 if (process.env.NODE_ENV === 'production') {
-  // Qualquer rota que NÃO comece com /api|/auth devolve index.html (SPA), protegido
-  app.get(/^(?!\/(api|auth)).*/, requireAuth, (req, res) => {
+  // Qualquer rota que NÃO comece com /api|/auth devolve index.html (SPA)
+  app.get(/^(?!\/(api|auth)).*/, (req, res) => {
     const indexPath = path.resolve(__dirname, '../dist/index.html');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
