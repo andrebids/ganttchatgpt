@@ -12,8 +12,10 @@ echo [1/5] A verificar e libertar portas...
 
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3025') do taskkill /PID %%a /F >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5173') do taskkill /PID %%a /F >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5174') do taskkill /PID %%a /F >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5175') do taskkill /PID %%a /F >nul 2>&1
 
-echo Portas 3025 e 5173 libertadas.
+echo Portas 3025, 5173, 5174 e 5175 libertadas.
 timeout /t 1 >nul
 
 REM ================================
@@ -56,7 +58,8 @@ REM ================================
 echo.
 echo [4/5] A iniciar servidor Express (3025) e Vite (5173)...
 start "SVAR Gantt Server" cmd /k "echo === Server backend iniciado === & npm run server"
-start "SVAR Gantt Frontend" cmd /k "echo === Frontend iniciado === & npm run dev"
+rem Vite está configurado em vite.config.js com port 5173 e strictPort
+start "SVAR Gantt Frontend" cmd /k "echo === Frontend iniciado (porta 5173) === & npm run dev"
 
 REM Esperar alguns segundos
 timeout /t 5 >nul
