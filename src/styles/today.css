@@ -15,4 +15,9 @@
   pointer-events: none;
 }
 
+/* centraliza o texto dos headers do grid */
+.header-center {
+  text-align: center;
+}
+
 

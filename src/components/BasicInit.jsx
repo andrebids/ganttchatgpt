@@ -90,13 +90,13 @@ export default function BasicInit({ skinSettings }) {
                 return unit === "day" && isSameDay ? "today-marker" : "";
               }}
               columns={[
-                { id: "text", header: "Task", width: 220, cell: NameAndDateCell },
-                { id: "start", header: "Start date", width: 110, cell: (props) => <StartDateCell {...props} api={api} /> },
-                { id: "end", header: "End date", width: 110, cell: (props) => <EndDateCell {...props} api={api} /> },
-                { id: "weeks", header: "Weeks", width: 55, align: "center", cell: WeeksCell },
+                { id: "text", header: { text: "Task", css: "header-center" }, width: 220, cell: NameAndDateCell },
+                { id: "start", header: { text: "Start Date", css: "header-center" }, width: 110, cell: (props) => <StartDateCell {...props} api={api} /> },
+                { id: "end", header: { text: "End Date", css: "header-center" }, width: 110, cell: (props) => <EndDateCell {...props} api={api} /> },
+                { id: "weeks", header: { text: "Weeks", css: "header-center" }, width: 55, align: "center", cell: WeeksCell },
                 {
                   id: "assigned",
-                  header: "Assigned",
+                  header: { text: "Assigned", css: "header-center" },
                   width: 100,
                   cell: (props) => (
                     <AvatarCell {...props} users={users} onEdit={(taskId) => setAssignDialog({ open: true, id: taskId })} />
@@ -104,7 +104,7 @@ export default function BasicInit({ skinSettings }) {
                 },
                 {
                   id: "add-task",
-                  header: { text: "" },
+                  header: { text: "", css: "header-center" },
                   width: 80,
                   align: "center",
                   cell: (props) => <AddTaskCell {...props} api={api} />,
