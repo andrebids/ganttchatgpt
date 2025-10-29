@@ -13,7 +13,12 @@ export default defineConfig(({ mode }) => ({
         target: "http://localhost:3025",
         changeOrigin: true,
         secure: false,
-        // Mantém o caminho /api intacto
+        rewrite: (path) => path,
+      },
+      "/auth": {
+        target: "http://localhost:3025",
+        changeOrigin: true,
+        secure: false,
         rewrite: (path) => path,
       },
     } : undefined,
