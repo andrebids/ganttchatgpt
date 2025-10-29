@@ -520,19 +520,14 @@ app.delete("/api/:id", (req, res) => {
 // Fallback para SPA - deve vir DEPOIS das rotas API
 // Serve o index.html para todas as rotas não-API (permite SPA routing)
 if (process.env.NODE_ENV === 'production') {
-  app.get('/', (req, res) => {
+  // Qualquer rota que NÃO comece com /api devolve index.html (SPA)
+  app.get(/^(?!\/api).*/, (req, res) => {
     const indexPath = path.resolve(__dirname, '../dist/index.html');
-    res.sendFile(indexPath);
-  });
-  
-  // Serve index.html para outras rotas (SPA routing)
-  app.get('/*', (req, res) => {
-    // Ignora rotas que começam com /api
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ error: 'API route not found' });
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Frontend não encontrado');
     }
-    const indexPath = path.resolve(__dirname, '../dist/index.html');
-    res.sendFile(indexPath);
   });
 }
 
