@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -9,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Configuração CORS baseada no ambiente
 const corsOptions = {
@@ -25,6 +27,108 @@ const DATA_PATH = process.env.DATA_PATH
   ? path.resolve(process.env.DATA_PATH)
   : path.resolve(process.cwd(), "src/data/tasks.json");
 
+// --- Auth helpers (scrypt hash verify + signed cookie) ---
+const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || 'gantt_auth';
+const COOKIE_SECRET = process.env.AUTH_COOKIE_SECRET;
+
+function hashPasswordWithScrypt(password, salt) {
+  return crypto.scryptSync(password, salt, 32).toString('hex');
+}
+
+function safeEqual(a, b) {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+
+function verifyPassword(plain, stored) {
+  const parts = String(stored || '').split(':');
+  if (parts.length !== 2) return false;
+  const [salt, expectedHex] = parts;
+  const got = hashPasswordWithScrypt(String(plain || ''), salt);
+  return safeEqual(got, expectedHex);
+}
+
+function sign(value) {
+  if (!COOKIE_SECRET) return '';
+  return crypto.createHmac('sha256', COOKIE_SECRET).update(String(value)).digest('hex');
+}
+
+function issueSession(res) {
+  const payload = String(Date.now());
+  const token = payload + '.' + sign(payload);
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: (Number(process.env.AUTH_COOKIE_MAX_AGE_DAYS) || 30) * 24 * 60 * 60 * 1000
+  });
+}
+
+function getCookieValue(req, name) {
+  const raw = String(req.headers.cookie || '');
+  const part = raw.split(';').map(s => s.trim()).find(s => s.startsWith(name + '='));
+  if (!part) return null;
+  return decodeURIComponent(part.split('=')[1] || '');
+}
+
+function isSessionValidFromCookie(req) {
+  const val = getCookieValue(req, COOKIE_NAME);
+  if (!val) return false;
+  const [payload, mac] = String(val).split('.');
+  if (!payload || !mac) return false;
+  return safeEqual(sign(payload), mac);
+}
+
+function requireAuth(req, res, next) {
+  if (isSessionValidFromCookie(req)) return next();
+  return res.status(401).send('Unauthorized');
+}
+
+// Auth endpoints (before API routes)
+app.post('/auth/login', (req, res) => {
+  try {
+    const { password } = req.body || {};
+    const stored = process.env.AUTH_PASSWORD_HASH;
+    if (!stored || !COOKIE_SECRET) {
+      return res.status(500).json({ error: 'Auth not configured' });
+    }
+    if (verifyPassword(password, stored)) {
+      issueSession(res);
+      return res.json({ ok: true });
+    }
+    return res.status(401).json({ error: 'Unauthorized' });
+  } catch (err) {
+    console.error('❌ Error on /auth/login:', err.message);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.post('/auth/logout', (req, res) => {
+  try {
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('❌ Error on /auth/logout:', err.message);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.get('/auth/me', (req, res) => {
+  try {
+    return isSessionValidFromCookie(req)
+      ? res.json({ ok: true })
+      : res.status(401).json({ ok: false });
+  } catch (err) {
+    console.error('❌ Error on /auth/me:', err.message);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 // Servir ficheiros estáticos do frontend em produção (ANTES das rotas)
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../dist');
@@ -32,6 +136,8 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(distPath, { index: false })); // index: false para não servir automaticamente index.html
     console.log(`📦 Servindo ficheiros estáticos de: ${distPath}`);
   }
+  // Proteger API em produção
+  app.use('/api', requireAuth);
 }
 
 // Helpers para normalização de dados
@@ -520,8 +626,8 @@ app.delete("/api/:id", (req, res) => {
 // Fallback para SPA - deve vir DEPOIS das rotas API
 // Serve o index.html para todas as rotas não-API (permite SPA routing)
 if (process.env.NODE_ENV === 'production') {
-  // Qualquer rota que NÃO comece com /api devolve index.html (SPA)
-  app.get(/^(?!\/api).*/, (req, res) => {
+  // Qualquer rota que NÃO comece com /api|/auth devolve index.html (SPA), protegido
+  app.get(/^(?!\/(api|auth)).*/, requireAuth, (req, res) => {
     const indexPath = path.resolve(__dirname, '../dist/index.html');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);

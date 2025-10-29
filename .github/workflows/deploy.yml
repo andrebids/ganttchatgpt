@@ -52,10 +52,13 @@ jobs:
             # Nunca tocar na base de dados do servidor. Apenas garantir diretórios.
             # Não criar/alterar data/tasks.json aqui.
             
-            # Criar ficheiro .env.production (se não existir)
-            if [ ! -f .env.production ]; then
-              echo "VITE_API_URL=/api" > .env.production
-            fi
+            # Criar ficheiro .env.production com variáveis de autenticação
+            cat > .env.production << EOF
+VITE_API_URL=/api
+AUTH_PASSWORD_HASH=${{ secrets.AUTH_PASSWORD_HASH }}
+AUTH_COOKIE_SECRET=${{ secrets.AUTH_COOKIE_SECRET }}
+CORS_ORIGIN=https://gantt.dsproject.pt
+EOF
             
             # Instalar dependências e fazer build
             npm ci --omit=dev
