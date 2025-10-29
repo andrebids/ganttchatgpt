@@ -2,7 +2,7 @@ name: Deploy gantt-demo
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch: {}
 
 jobs:
@@ -47,7 +47,9 @@ jobs:
             cd ${{ secrets.APP_DIR }}
             npm ci --omit=dev
             npm run build
-            if [ -f ecosystem.config.js ]; then
+            if [ -f ecosystem.config.cjs ]; then
+              pm2 startOrReload ecosystem.config.cjs || pm2 restart gantt-server || pm2 start server/server.js --name gantt-server
+            elif [ -f ecosystem.config.js ]; then
               pm2 startOrReload ecosystem.config.js || pm2 restart gantt-server || pm2 start server/server.js --name gantt-server
             else
               pm2 restart gantt-server || pm2 start server/server.js --name gantt-server
