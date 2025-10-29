@@ -69,6 +69,10 @@ export default function BasicInit({ skinSettings }) {
       if (ev?.id != null) setEditorTaskId(ev.id);
     });
     api.on?.("hide-editor", () => setEditorTaskId(null));
+    // Observa mudanças de zoom
+    api.on("zoom-scale", () => {
+      console.log("Zoom level:", api.getState().zoom);
+    });
   }, [restProvider]);
 
   return (
@@ -83,6 +87,8 @@ export default function BasicInit({ skinSettings }) {
               tasks={tasks}
               links={links}
               init={init}
+              cellWidth={100}
+              zoom
               markers={[{ start: new Date(), text: "Today", css: "today-marker" }]}
               highlightTime={(date, unit) => {
                 const now = new Date();
