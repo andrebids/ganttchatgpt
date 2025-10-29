@@ -45,8 +45,25 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.APP_DIR }}
+            
+            # Criar diretórios necessários
+            mkdir -p data logs
+            
+            # Inicializar ficheiro de dados se não existir
+            if [ ! -f data/tasks.json ]; then
+              echo '{"tasks":[],"links":[],"users":[]}' > data/tasks.json
+            fi
+            
+            # Criar ficheiro .env.production (se não existir)
+            if [ ! -f .env.production ]; then
+              echo "VITE_API_URL=/api" > .env.production
+            fi
+            
+            # Instalar dependências e fazer build
             npm ci --omit=dev
             npm run build
+            
+            # Recarregar PM2
             if [ -f ecosystem.config.cjs ]; then
               pm2 startOrReload ecosystem.config.cjs || pm2 restart gantt-server || pm2 start server/server.js --name gantt-server
             elif [ -f ecosystem.config.js ]; then
@@ -55,4 +72,6 @@ jobs:
               pm2 restart gantt-server || pm2 start server/server.js --name gantt-server
             fi
             pm2 save
+            
+            echo "✅ Deploy concluído com sucesso!"
 

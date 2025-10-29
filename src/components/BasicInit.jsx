@@ -11,8 +11,10 @@ import WeeksCell from "./WeeksCell.jsx";
 import EditorAssignDropdown from "./EditorAssignDropdown.jsx";
 
 export default function BasicInit({ skinSettings }) {
+  const API_URL = import.meta.env.VITE_API_URL || "/api";
+  
   const restProvider = useMemo(
-    () => new RestDataProvider("http://localhost:3025/api"),
+    () => new RestDataProvider(API_URL),
     []
   );
 
@@ -32,11 +34,11 @@ export default function BasicInit({ skinSettings }) {
       setLinks(Array.isArray(linksData) ? linksData : []);
     });
     // carrega catálogo de utilizadores
-    fetch("http://localhost:3025/api/users")
+    fetch(`${API_URL}/users`)
       .then((r) => r.json())
       .then((u) => setUsers(u))
       .catch(() => setUsers([]));
-  }, [restProvider]);
+  }, [restProvider, API_URL]);
 
   // Inicializa o Gantt - exatamente como no exemplo oficial
   const init = useCallback((api) => {
@@ -80,34 +82,8 @@ export default function BasicInit({ skinSettings }) {
       <div style={{ flexGrow: 1 }}>
         <ContextMenu api={api}>
           <Fullscreen hotkey="ctrl+shift+f">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "6px 0" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 8, padding: "6px 0" }}>
               <Toolbar api={api} />
-              <button
-                onClick={() => {
-                  const start = new Date();
-                  api?.exec("add-task", {
-                    task: {
-                      text: "New task",
-                      type: "task",
-                      start,
-                      duration: 1,
-                      parent: 0,
-                    },
-                  });
-                }}
-                style={{
-                  height: 28,
-                  padding: "0 12px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(203,213,225,.35)",
-                  background: "#0ea5e9",
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                New task
-              </button>
             </div>
             <Gantt
               {...skinSettings}

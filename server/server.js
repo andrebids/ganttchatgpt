@@ -9,12 +9,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-app.use(cors());
+
+// Configuração CORS baseada no ambiente
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const DATA_PATH = process.env.DATA_PATH 
   ? path.resolve(process.env.DATA_PATH)
   : path.resolve(process.cwd(), "src/data/tasks.json");
+
+// Servir ficheiros estáticos do frontend em produção (ANTES das rotas)
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.resolve(__dirname, '../dist');
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath, { index: false })); // index: false para não servir automaticamente index.html
+    console.log(`📦 Servindo ficheiros estáticos de: ${distPath}`);
+  }
+}
 
 // Helpers para normalização de dados
 function ensureDataFile() {
@@ -499,5 +517,31 @@ app.delete("/api/:id", (req, res) => {
   }
 });
 
-const PORT = 3025;
-app.listen(PORT, () => console.log(`✅ Server em http://localhost:${PORT}`));
+// Fallback para SPA - deve vir DEPOIS das rotas API
+// Serve o index.html para todas as rotas não-API (permite SPA routing)
+if (process.env.NODE_ENV === 'production') {
+  app.get('/', (req, res) => {
+    const indexPath = path.resolve(__dirname, '../dist/index.html');
+    res.sendFile(indexPath);
+  });
+  
+  // Serve index.html para outras rotas (SPA routing)
+  app.get('/*', (req, res) => {
+    // Ignora rotas que começam com /api
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API route not found' });
+    }
+    const indexPath = path.resolve(__dirname, '../dist/index.html');
+    res.sendFile(indexPath);
+  });
+}
+
+const PORT = process.env.PORT || 3025;
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`✅ Server em http://${HOST}:${PORT}`);
+  console.log(`📂 Caminho dos dados: ${DATA_PATH}`);
+  console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔐 CORS: ${JSON.stringify(corsOptions.origin)}`);
+});
