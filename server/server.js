@@ -137,15 +137,16 @@ app.get('/auth/me', (req, res) => {
   }
 });
 
-// Servir ficheiros estáticos do frontend em produção (ANTES das rotas)
+// Proteger todas as rotas /api/* com autenticação (ANTES de definir as rotas)
+app.use('/api', requireAuth);
+
+// Servir ficheiros estáticos do frontend em produção
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../dist');
   if (fs.existsSync(distPath)) {
     app.use(express.static(distPath, { index: false })); // index: false para não servir automaticamente index.html
     console.log(`📦 Servindo ficheiros estáticos de: ${distPath}`);
   }
-  // Proteger API em produção
-  app.use('/api', requireAuth);
 }
 
 // Helpers para normalização de dados
