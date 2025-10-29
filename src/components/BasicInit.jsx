@@ -80,7 +80,35 @@ export default function BasicInit({ skinSettings }) {
       <div style={{ flexGrow: 1 }}>
         <ContextMenu api={api}>
           <Fullscreen hotkey="ctrl+shift+f">
-            <Toolbar api={api} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "6px 0" }}>
+              <Toolbar api={api} />
+              <button
+                onClick={() => {
+                  const start = new Date();
+                  api?.exec("add-task", {
+                    task: {
+                      text: "New task",
+                      type: "task",
+                      start,
+                      duration: 1,
+                      parent: 0,
+                    },
+                  });
+                }}
+                style={{
+                  height: 28,
+                  padding: "0 12px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(203,213,225,.35)",
+                  background: "#0ea5e9",
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                New task
+              </button>
+            </div>
             <Gantt
               {...skinSettings}
               editable={true}
