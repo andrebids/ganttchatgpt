@@ -12,7 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const DATA_PATH = path.resolve(process.cwd(), "src/data/tasks.json");
+const DATA_PATH = process.env.DATA_PATH 
+  ? path.resolve(process.env.DATA_PATH)
+  : path.resolve(process.cwd(), "src/data/tasks.json");
 
 // Helpers para normalização de dados
 function ensureDataFile() {
